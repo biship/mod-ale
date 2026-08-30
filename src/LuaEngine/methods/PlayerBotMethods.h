@@ -944,15 +944,15 @@ namespace LuaGlobalBot
     }
 
     /**
-     * Return true if the bot has a real player as its master.
+     * Return true if the bot's master is driven by a game client.
      *
-     * This differs from `IsRealPlayer()`: a normal player-owned bot returns
-     * true here, but false for `IsRealPlayer()`. RNDBots typically return false.
+     * The master may be a regular player or a self-bot. RNDBots typically
+     * return false.
      *
      * @param uint32 guidLow : bot GUID low
      * @return bool
      */
-    int HasRealPlayerMaster(lua_State* L)
+    int HasGameClientMaster(lua_State* L)
     {
         uint32 guidLow = ALE::CHECKVAL<uint32>(L, 1);
         ObjectGuid playerGuid = ObjectGuid::Create<HighGuid::Player>(guidLow);
@@ -969,22 +969,20 @@ namespace LuaGlobalBot
     }
 
     /**
-     * Return true if this Player is treated as a real player by mod-playerbots.
+     * Return true if this Player is a self-bot.
      *
-     * In mod-playerbots, this is only true for a non-bot player, where the
-     * player does not have a PlayerbotAI instance attached.
+     * A self-bot has PlayerbotAI attached and its `master` pointer refers to
+     * the Player itself (`master == bot`).
      *
      * This means:
-     * - true  : an actual person controlling their character
-     * - false : any type of bot (including self-bots or RNDBots)
-     *
-     * If you want to know whether a bot has a real player owner, use the
-     * related player-master checks instead.
+     * - true  : a player running PlayerbotAI on their own character
+     * - false : an RNDBot / random bot
+     * - false : a bot controlled by some other player
      *
      * @param uint32 guidLow : player GUID low
      * @return bool
      */
-    int IsRealPlayer(lua_State* L)
+    int IsSelfBot(lua_State* L)
     {
         uint32 guidLow = ALE::CHECKVAL<uint32>(L, 1);
         ObjectGuid playerGuid = ObjectGuid::Create<HighGuid::Player>(guidLow);
@@ -994,7 +992,8 @@ namespace LuaGlobalBot
             ALE::Push(L, false);
             return 1;
         }
-        ALE::Push(L, ::IsRealPlayer(player));
+        PlayerbotAI* ai = sPlayerbotsMgr.GetPlayerbotAI(bot);
+        ALE::Push(L, ai ? ::IsSelfBot(bot) : false);
         return 1;
     }
 
@@ -1401,16 +1400,15 @@ namespace LuaGlobalBot
     }
 
     /**
-     * Return true if the bot currently has a real player or self-bot as its master.
+     * Return true if the bot has a regular player as its master.
      *
-     * This is useful for checking whether the bot is actively owned/controlled
-     * by a player (real or self-bot) right now. It is typically false for RNDBots
-     * with no player master.
+     * A regular player has no PlayerbotAI attached. This is false for RNDBots,
+     * bots with no master, and bots whose master is a self-bot.
      *
      * @param uint32 guidLow : bot GUID low
      * @return bool
      */
-    int HasActivePlayerMaster(lua_State* L)
+    int HasRealPlayerMaster(lua_State* L)
     {
         uint32 guidLow = ALE::CHECKVAL<uint32>(L, 1);
         ObjectGuid playerGuid = ObjectGuid::Create<HighGuid::Player>(guidLow);
@@ -1421,7 +1419,7 @@ namespace LuaGlobalBot
             return 1;
         }
         PlayerbotAI* ai = sPlayerbotsMgr.GetPlayerbotAI(bot);
-        ALE::Push(L, ai ? ai->HasGameClientMaster() : false);
+        ALE::Push(L, ai ? ::IsRealPlayer(ai->GetMaster()) : false);
         return 1;
     }
 
