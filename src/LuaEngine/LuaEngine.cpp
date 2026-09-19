@@ -1101,6 +1101,9 @@ std::string ALE::FormatQuery(lua_State* L, char const* query, DatabaseWorkerPool
 template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPool<WorldDatabaseConnection>&);
 template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPool<CharacterDatabaseConnection>&);
 template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPool<LoginDatabaseConnection>&);
+#if defined(MOD_PLAYERBOTS)
+template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPool<PlayerbotsDatabaseConnection>&);
+#endif
 
 static int CheckIntegerRange(lua_State* luastate, int narg, int min, int max)
 {
