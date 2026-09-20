@@ -41,6 +41,7 @@ ALEEventProcessor::~ALEEventProcessor()
 
 void ALEEventProcessor::Update(uint32 diff)
 {
+    LOCK_ALE; //Nick
     m_time += diff;
     for (EventList::iterator it = eventList.begin(); it != eventList.end() && it->first <= m_time; it = eventList.begin())
     {

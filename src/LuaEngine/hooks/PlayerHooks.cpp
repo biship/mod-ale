@@ -250,7 +250,7 @@ void ALE::OnGiveXP(Player* pPlayer, uint32& amount, Unit* pVictim, uint8 xpSourc
     Push(amount);
     Push(pVictim);
     Push(xpSource);
-    int amountIndex = lua_gettop(L) - 1;
+    int amountIndex = lua_gettop(L) - 2; //Nick
     int n = SetupStack(PlayerEventBindings, key, 4);
 
     while (n > 0)
