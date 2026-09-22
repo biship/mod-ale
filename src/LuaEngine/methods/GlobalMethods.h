@@ -16,6 +16,9 @@
 #include "OutdoorPvPMgr.h"
 #include "../../../../src/server/scripts/OutdoorPvP/OutdoorPvPNA.h"
 
+#if defined(MOD_PLAYERBOTS)
+#include "PlayerbotsDatabase.h"
+#endif
 
 enum BanMode
 {
@@ -1477,6 +1480,16 @@ namespace LuaGlobalFunctions
         return 0;
     }
 
+#if defined(MOD_PLAYERBOTS)
+    static int DBQueryAsync(lua_State* L, PlayerbotsDatabasePool&)
+    {
+        ALE::CHECKVAL<char const*>(L, 1);
+        luaL_checktype(L, 2, LUA_TFUNCTION);
+        return luaL_error(
+            L, "PlayerbotsDBQueryAsync is unavailable because the playerbots database pool is synchronous");
+    }
+#endif
+
     /**
      * Executes a SQL query on the world database and returns an [ALEQuery].
      *
@@ -1730,7 +1743,6 @@ namespace LuaGlobalFunctions
      *
      * The query is always executed synchronously
      *   (i.e. execution halts until the query has finished and then results are returned).
-     * If you need to execute the query asynchronously, use [Global:PlayerbotsDBQueryAsync] instead.
      *
      *     local Q = PlayerbotsDBQuery("SELECT id, name, x, y, z FROM playerbots_travelnode WHERE map_id = 0 LIMIT 10")
      *     if Q then
@@ -1764,22 +1776,12 @@ namespace LuaGlobalFunctions
     }
 
     /**
-     * Executes an asynchronous SQL query on the playerbots database and passes an [ALEQuery] to a callback function.
+     * Reports that asynchronous playerbots database queries are unavailable.
      *
-     * The query is executed asynchronously
-     *   (i.e. the server keeps running while the query is executed in parallel, and results are passed to a callback function).
-     * If you need to execute the query synchronously, use [Global:PlayerbotsDBQuery] instead.
-     *
-     *     PlayerbotsDBQueryAsync("SELECT id, x, y, z FROM playerbots_travelnode WHERE map_id = 0", function(Q)
-     *         if Q then
-     *             repeat
-     *                 print(Q:GetUInt32(0), Q:GetFloat(1), Q:GetFloat(2), Q:GetFloat(3))
-     *             until not Q:NextRow()
-     *         end
-     *     end)
+     * The module-owned playerbots database pool is synchronous. Use [Global:PlayerbotsDBQuery] instead.
      *
      * @param string sql : query to execute
-     * @param function callback : function that will be called when the results are available
+     * @param function callback : unused callback kept for API compatibility
      */
     int PlayerbotsDBQueryAsync(lua_State* L)
     {
@@ -1789,11 +1791,8 @@ namespace LuaGlobalFunctions
     /**
      * Executes a SQL query on the playerbots database.
      *
-     * The query may be executed *asynchronously* (at a later, unpredictable time).
-     * If you need to execute the query synchronously, use [Global:PlayerbotsDBQuery] instead.
-     *
-     * Any results produced are ignored.
-     * If you need results from the query, use [Global:PlayerbotsDBQuery] or [Global:PlayerbotsDBQueryAsync] instead.
+     * The query is executed synchronously and any results produced are ignored.
+     * If you need results from the query, use [Global:PlayerbotsDBQuery] instead.
      *
      *     PlayerbotsDBExecute("DELETE FROM playerbots_random_bots WHERE owner = 0")
      *
