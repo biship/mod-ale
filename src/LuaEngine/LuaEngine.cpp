@@ -16,6 +16,10 @@
 #include "ALECreatureAI.h"
 #include "ALEInstanceAI.h"
 
+#if defined(MOD_PLAYERBOTS)
+#include "PlayerbotsDatabase.h"
+#endif
+
 #if AC_PLATFORM == AC_PLATFORM_WINDOWS
 #define ALE_WINDOWS
 #endif
@@ -1058,8 +1062,8 @@ void ALE::Push(lua_State* luastate, CreatureTemplate const* creatureTemplate)
     Push<CreatureTemplate>(luastate, creatureTemplate);
 }
 
-template<typename T>
-std::string ALE::FormatQuery(lua_State* L, char const* query, DatabaseWorkerPool<T>& db)
+template<typename Pool>
+std::string ALE::FormatQuery(lua_State* L, char const* query, Pool& db)
 {
     int numArgs = lua_gettop(L);
     std::string formattedQuery = query;
@@ -1102,7 +1106,7 @@ template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPoo
 template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPool<CharacterDatabaseConnection>&);
 template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPool<LoginDatabaseConnection>&);
 #if defined(MOD_PLAYERBOTS)
-template std::string ALE::FormatQuery(lua_State*, char const*, DatabaseWorkerPool<PlayerbotsDatabaseConnection>&);
+template std::string ALE::FormatQuery(lua_State*, char const*, PlayerbotsDatabasePool&);
 #endif
 
 static int CheckIntegerRange(lua_State* luastate, int narg, int min, int max)

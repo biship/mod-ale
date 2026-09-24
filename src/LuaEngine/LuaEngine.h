@@ -317,8 +317,8 @@ public:
      * stack index 2..top. String arguments are escaped through `db`, so the
      * pool the query will run on must be passed.
      */
-    template<typename T>
-    static std::string FormatQuery(lua_State* L, char const* query, DatabaseWorkerPool<T>& db);
+    template<typename Pool>
+    static std::string FormatQuery(lua_State* L, char const* query, Pool& db);
 
     bool ExecuteCall(int params, int res);
 
